@@ -111,7 +111,7 @@ export default function Dashboard() {
             <div className="card-body p-4">
               <h5 className="fw-bold mb-4">Accesos Rápidos</h5>
               <div className="d-grid gap-3">
-                <button className="btn btn-light text-start p-3 rounded-3 d-flex align-items-center" onClick={() => navigate("/admin/gestionar-anexos")}>
+                <button className="btn btn-light text-start p-3 rounded-3 d-flex align-items-center" onClick={() => navigate( "/gestionar-anexos")}>
                   <div className="bg-primary text-white rounded p-2 me-3"><i className="bi bi-list-ul"></i></div>
                   <div>
                     <div className="fw-bold">Listado Completo</div>
@@ -127,7 +127,7 @@ export default function Dashboard() {
           <div className="card border-0 shadow-sm rounded-4 h-100">
             <div className="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
               <h5 className="fw-bold m-0">Últimos Anexos</h5>
-              <button className="btn btn-sm btn-outline-primary rounded-pill" onClick={() => navigate("/admin/gestionar-anexos")}>Ver todos</button>
+              <button className="btn btn-sm btn-outline-primary rounded-pill" onClick={() => navigate( "/gestionar-anexos")}>Ver todos</button>
             </div>
 
             <div className="table-responsive">
