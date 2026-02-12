@@ -1,6 +1,12 @@
-import { logout } from "../utils/auth";
+import { Link } from 'react-router-dom'; // 👈 Importamos Link
+import { AuthService } from '../services/authServices'; // 👈 Usamos el servicio que creamos
 
 export default function Configuracion() {
+
+  const handleLogout = () => {
+    AuthService.logout();
+  };
+
   return (
     <div className="container-fluid fade-in">
       {/* Cabecera */}
@@ -17,7 +23,15 @@ export default function Configuracion() {
               <span className="me-2">👤</span> Mi Perfil
             </button>
             
-            <button className="list-group-item list-group-item-action p-3 border-0 text-danger">
+            {/* 👇 NUEVO BOTÓN AL SIDEBAR 👇 */}
+            <Link to="/configuracion/password" className="list-group-item list-group-item-action p-3 border-0 text-dark text-decoration-none">
+              <span className="me-2">🔒</span> Seguridad
+            </Link>
+            
+            <button 
+                className="list-group-item list-group-item-action p-3 border-0 text-danger"
+                onClick={handleLogout}
+            >
               <span className="me-2">🚪</span> Cerrar Sesión
             </button>
           </div>
@@ -67,18 +81,25 @@ export default function Configuracion() {
 
               <hr className="my-5 text-muted opacity-25" />
 
-             
+              {/* 👇 NUEVA SECCIÓN: SEGURIDAD 👇 */}
+              <section className="mb-5">
+                 <h5 className="fw-bold mb-4">Seguridad</h5>
+                 <div className="d-flex justify-content-between align-items-center p-3 bg-light rounded-3 border border-light">
+                    <div>
+                        <div className="fw-bold text-dark"><i className="bi bi-key-fill me-2 text-primary"></i>Contraseña</div>
+                        <small className="text-muted">Se recomienda cambiar tu contraseña periódicamente.</small>
+                    </div>
+                    {/* Botón que lleva a la pantalla de cambiar contraseña */}
+                    <Link to="/configuracion/password" className="btn btn-outline-primary rounded-pill px-4 btn-sm fw-bold">
+                        Modificar
+                    </Link>
+                 </div>
+              </section>
 
               {/* Botones de guardado */}
               <div className="d-flex justify-content-end gap-2 mt-5">
                 <button className="btn btn-light rounded-pill px-4">Descartar</button>
                 <button className="btn btn-primary rounded-pill px-4 shadow-sm">Guardar Cambios</button>
-                <button
-              className="list-group-item list-group-item-action p-3 border-0 text-danger"
-              onClick={logout}
-            >
-              <span className="me-2">🚪</span> Cerrar Sesión
-            </button>
               </div>
 
             </div>
