@@ -5,20 +5,27 @@ import CrearAnexo from "./components/crearanexo";
 import GestionarAnexos from "./components/gestionaranexo";
 import Configuracion from "./components/configuracion";
 import EditarAnexo from "./components/EditarAnexo";
-import Login from "./components/login"; // Asegúrate de importar tu Login
+import Login from "./components/login"; 
+import Register from "./components/registro"; // 👈 1. IMPORTA EL COMPONENTE AQUÍ
 
 export const router = createBrowserRouter([
-  // 1. RUTA PÚBLICA (LOGIN)
-  // Esta es la primera pantalla ("/") y NO tiene el LayoutAdmin (sin sidebar)
+  // =======================================
+  // 1. RUTAS PÚBLICAS (SIN SIDEBAR)
+  // =======================================
   {
     path: "/",
     element: <Login />,
   },
-
-  // 2. RUTAS DEL SISTEMA (DASHBOARD)
-  // Estas rutas SÍ usan el LayoutAdmin (con sidebar y navbar)
   {
-    element: <LayoutAdmin />, // Este layout envuelve a todas las rutas hijas
+    path: "/register", // 👈 2. AQUÍ ESTÁ LA NUEVA RUTA
+    element: <Register />,
+  },
+
+  // =======================================
+  // 2. RUTAS DEL SISTEMA (CON SIDEBAR)
+  // =======================================
+  {
+    element: <LayoutAdmin />, 
     children: [
       {
         path: "dashboard",
@@ -43,8 +50,9 @@ export const router = createBrowserRouter([
     ],
   },
   
-  // 3. COMODÍN (Opcional)
-  // Si el usuario escribe cualquier ruta rara, lo mandamos al Login
+  // =======================================
+  // 3. COMODÍN (Cualquier ruta rara -> Login)
+  // =======================================
   {
     path: "*",
     element: <Login />,
