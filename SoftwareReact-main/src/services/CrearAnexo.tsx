@@ -1,27 +1,37 @@
 import axios from "axios";
-import { API_URL } from "./config"; 
+import { API_URL } from "./config";
+import { AuthService } from "../services/authServices"; // 👈 IMPORTANTE
 
 // Helper para procesar la respuesta
 const procesarRespuesta = (response: any) => {
-  // Axios pone los headers en minúsculas automáticamente
   const headerGuardado = response.headers['x-anexo-guardado'];
   const guardadoExitoso = headerGuardado === 'true';
 
   return {
-    blob: response.data, // El archivo Word
-    saved: guardadoExitoso // True o False según el backend
+    blob: response.data,
+    saved: guardadoExitoso
   };
 };
 
 // --- 1. CREAR MANUALMENTE ---
 export const crearAnexoManual = async (datos: any, nombrePlantilla: string) => {
   try {
+
+    const token = AuthService.getToken(); // 👈 OBTENEMOS TOKEN
+
     const response = await axios.post(
-      `${API_URL}/anexos/generar`, 
+      `${API_URL}/anexos/generar`,
       { nombrePlantilla, datos },
-      { responseType: 'blob' }
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // 👈 AGREGADO
+        },
+        responseType: 'blob'
+      }
     );
+
     return procesarRespuesta(response);
+
   } catch (error: any) {
     console.error("Error servicio manual:", error);
     throw new Error("Error al generar documento manual.");
@@ -29,13 +39,19 @@ export const crearAnexoManual = async (datos: any, nombrePlantilla: string) => {
 };
 
 // --- 2. CREAR INTELIGENTE (IA) ---
-export const crearAnexoInteligente = async (pdfFile: File, datosManuales: any, nombrePlantilla: string) => {
+export const crearAnexoInteligente = async (
+  pdfFile: File,
+  datosManuales: any,
+  nombrePlantilla: string
+) => {
   try {
+
+    const token = AuthService.getToken(); // 👈 OBTENEMOS TOKEN
+
     const formData = new FormData();
     formData.append("pdfTecnico", pdfFile);
     formData.append("nombrePlantilla", nombrePlantilla);
 
-    // Mapeo de datos manuales
     formData.append("nombre_organismo", datosManuales.nombre_ejecutor || "");
     formData.append("rut_organismo", datosManuales.rut_ejecutor || "");
     formData.append("telefono_organismo", datosManuales.telefono_ejecutor || "");
@@ -46,13 +62,17 @@ export const crearAnexoInteligente = async (pdfFile: File, datosManuales: any, n
     formData.append("codigo_curso", datosManuales.código_curso || "");
 
     const response = await axios.post(
-      `${API_URL}/anexos/inteligente`, 
-      formData, 
+      `${API_URL}/anexos/inteligente`,
+      formData,
       {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: {
+          Authorization: `Bearer ${token}`, // 👈 AGREGADO
+          'Content-Type': 'multipart/form-data'
+        },
         responseType: 'blob',
       }
     );
+
     return procesarRespuesta(response);
 
   } catch (error: any) {

@@ -17,7 +17,7 @@ export interface FormDataAnexoManual {
 }
 
 export const getAuthHeaders = () => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token_sence_app");
   if (!token) throw new Error("Sesión expirada.");
   return {
     headers: { Authorization: `Bearer ${token}` }
