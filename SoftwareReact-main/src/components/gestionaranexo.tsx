@@ -17,9 +17,10 @@ const GestionarAnexos = () => {
   const [anexos, setAnexos] = useState<Anexo[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 NUEVOS ESTADOS
+  // 🔹 FILTROS
   const [fechaDesde, setFechaDesde] = useState<string>("");
   const [fechaHasta, setFechaHasta] = useState<string>("");
+  const [busquedaId, setBusquedaId] = useState<string>("");
 
   const cargarAnexos = async () => {
     try {
@@ -47,18 +48,25 @@ const GestionarAnexos = () => {
     cargarAnexos();
   }, []);
 
-  // 🔹 FILTRO POR RANGO
+  // 🔹 FILTRO COMBINADO
   const anexosFiltrados = anexos.filter((anexo) => {
     const fechaAnexo = new Date(anexo.fechaGeneracion);
 
+    // Filtro por ID
+    if (busquedaId && !anexo._id.includes(busquedaId)) {
+      return false;
+    }
+
+    // Filtro desde
     if (fechaDesde) {
       const desde = new Date(fechaDesde);
       if (fechaAnexo < desde) return false;
     }
 
+    // Filtro hasta
     if (fechaHasta) {
       const hasta = new Date(fechaHasta);
-      hasta.setHours(23, 59, 59, 999); // incluir todo el día
+      hasta.setHours(23, 59, 59, 999);
       if (fechaAnexo > hasta) return false;
     }
 
@@ -96,8 +104,22 @@ const GestionarAnexos = () => {
         </button>
       </div>
 
-      {/* 🔹 FILTRO POR RANGO */}
+      {/* 🔹 FILTROS */}
       <div className="mb-4 d-flex align-items-end gap-3 flex-wrap">
+
+        {/* Buscar por ID */}
+        <div>
+          <label className="form-label fw-semibold">Buscar por ID</label>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Escribe parte del ID..."
+            value={busquedaId}
+            onChange={(e) => setBusquedaId(e.target.value)}
+          />
+        </div>
+
+        {/* Desde */}
         <div>
           <label className="form-label fw-semibold">Desde</label>
           <input
@@ -108,6 +130,7 @@ const GestionarAnexos = () => {
           />
         </div>
 
+        {/* Hasta */}
         <div>
           <label className="form-label fw-semibold">Hasta</label>
           <input
@@ -118,10 +141,11 @@ const GestionarAnexos = () => {
           />
         </div>
 
-        {(fechaDesde || fechaHasta) && (
+        {(busquedaId || fechaDesde || fechaHasta) && (
           <button
             className="btn btn-outline-secondary"
             onClick={() => {
+              setBusquedaId("");
               setFechaDesde("");
               setFechaHasta("");
             }}
@@ -131,12 +155,13 @@ const GestionarAnexos = () => {
         )}
       </div>
 
-      {/* Tabla */}
+      {/* TABLA */}
       <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div className="table-responsive">
           <table className="table table-hover align-middle mb-0">
             <thead className="bg-light">
               <tr>
+                <th className="px-4 py-3 border-0">ID</th>
                 <th className="px-4 py-3 border-0">Plantilla</th>
                 <th className="py-3 border-0">Fecha</th>
                 <th className="py-3 border-0">Trabajador/Ejecutor</th>
@@ -147,6 +172,9 @@ const GestionarAnexos = () => {
             <tbody>
               {anexosFiltrados.map((anexo) => (
                 <tr key={anexo._id}>
+                  <td className="px-4 small text-muted">
+                    {anexo._id.slice(0, 8)}...
+                  </td>
                   <td className="px-4 fw-semibold">
                     {anexo.nombrePlantilla}
                   </td>
@@ -188,7 +216,7 @@ const GestionarAnexos = () => {
 
               {anexosFiltrados.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center p-4">
+                  <td colSpan={6} className="text-center p-4">
                     No se encontraron registros.
                   </td>
                 </tr>
