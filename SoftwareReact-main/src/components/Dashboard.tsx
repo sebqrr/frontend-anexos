@@ -1,15 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-// Importamos el servicio de Dashboard para leer
 import { DashboardService } from "../services/DashboardService";
-// Importamos el servicio de Anexo para borrar
 import { eliminarAnexo } from "../services/BorrarAnexo"; 
 
 interface Anexo {
   _id: string;
   nombrePlantilla: string;
   datosRellenados: {
-    nombre_ejecutor?: string; // Ajustado a nombre_ejecutor que es más común en tu schema
+    nombre_ejecutor?: string;
     nombre?: string; 
   };
   fechaGeneracion: string;
@@ -44,21 +42,48 @@ export default function Dashboard() {
     }
   };
 
-  // --- LÓGICA PARA BORRAR ---
+  // 🔥 FUNCIÓN: Hace X tiempo
+  const tiempoTranscurrido = (fecha: string) => {
+    const ahora = new Date().getTime();
+    const fechaAnexo = new Date(fecha).getTime();
+    const diferencia = ahora - fechaAnexo;
+
+    const segundos = Math.floor(diferencia / 1000);
+    const minutos = Math.floor(segundos / 60);
+    const horas = Math.floor(minutos / 60);
+    const dias = Math.floor(horas / 24);
+    const semanas = Math.floor(dias / 7);
+    const meses = Math.floor(dias / 30);
+    const años = Math.floor(dias / 365);
+
+    if (segundos < 60) return "Hace unos segundos";
+    if (minutos < 60) return `Hace ${minutos} minuto${minutos !== 1 ? "s" : ""}`;
+    if (horas < 24) return `Hace ${horas} hora${horas !== 1 ? "s" : ""}`;
+    if (dias < 7) return `Hace ${dias} día${dias !== 1 ? "s" : ""}`;
+    if (semanas < 4) return `Hace ${semanas} semana${semanas !== 1 ? "s" : ""}`;
+    if (meses < 12) return `Hace ${meses} mes${meses !== 1 ? "es" : ""}`;
+    return `Hace ${años} año${años !== 1 ? "s" : ""}`;
+  };
+
+  // 🔥 FUNCIÓN: Color dinámico
+  const obtenerClaseTiempo = (fecha: string) => {
+    const ahora = new Date().getTime();
+    const fechaAnexo = new Date(fecha).getTime();
+    const diferenciaHoras = (ahora - fechaAnexo) / (1000 * 60 * 60);
+
+    if (diferenciaHoras < 24) return "text-success fw-semibold";
+    if (diferenciaHoras < 24 * 7) return "text-warning fw-semibold";
+    return "text-secondary";
+  };
+
   const handleDelete = async (id: string) => {
     const confirmar = window.confirm("¿Estás seguro de eliminar este anexo permanentemente?");
     if (!confirmar) return;
 
     try {
-      // 1. Llamamos al backend
       await eliminarAnexo(id);
-
-      // 2. Actualizamos la UI localmente (filtramos la lista)
       setAnexos(prevAnexos => prevAnexos.filter(a => a._id !== id));
-      
-      // 3. Actualizamos el contador total
       setStatsData(prev => ({ ...prev, total: prev.total - 1 }));
-
       alert("Anexo eliminado correctamente.");
     } catch (error: any) {
       alert("Error al eliminar: " + error.message);
@@ -105,85 +130,78 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="row g-4">
-        <div className="col-lg-4">
-          <div className="card border-0 shadow-sm rounded-4 h-100">
-            <div className="card-body p-4">
-              <h5 className="fw-bold mb-4">Accesos Rápidos</h5>
-              <div className="d-grid gap-3">
-                <button className="btn btn-light text-start p-3 rounded-3 d-flex align-items-center" onClick={() => navigate( "/gestionar-anexos")}>
-                  <div className="bg-primary text-white rounded p-2 me-3"><i className="bi bi-list-ul"></i></div>
-                  <div>
-                    <div className="fw-bold">Listado Completo</div>
-                    <div className="small text-muted">{statsData.total} registros encontrados</div>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
+      <div className="card border-0 shadow-sm rounded-4">
+        <div className="card-header bg-white border-0 py-3 px-4">
+          <h5 className="fw-bold m-0">Últimos Anexos</h5>
         </div>
 
-        <div className="col-lg-8">
-          <div className="card border-0 shadow-sm rounded-4 h-100">
-            <div className="card-header bg-white border-0 py-3 px-4 d-flex justify-content-between align-items-center">
-              <h5 className="fw-bold m-0">Últimos Anexos</h5>
-              <button className="btn btn-sm btn-outline-primary rounded-pill" onClick={() => navigate( "/gestionar-anexos")}>Ver todos</button>
-            </div>
+        <div className="table-responsive">
+          <table className="table table-hover align-middle mb-0">
+            <thead className="table-light">
+              <tr>
+                <th className="ps-4">Ejecutor</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th className="text-end pe-4">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {anexos.map((anexo) => (
+                <tr key={anexo._id}>
+                  <td className="ps-4 fw-bold">
+                    {anexo.datosRellenados?.nombre_ejecutor || 
+                     anexo.datosRellenados?.nombre || 
+                     "Sin asignar"}
+                  </td>
 
-            <div className="table-responsive">
-              <table className="table table-hover align-middle mb-0">
-                <thead className="table-light">
-                  <tr>
-                    <th className="ps-4">Ejecutor</th>
-                    <th>Fecha</th>
-                    <th>Estado</th>
-                    <th className="text-end pe-4">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {anexos.map((anexo) => (
-                    <tr key={anexo._id}>
-                      <td className="ps-4 fw-bold">
-                        {/* Intentamos mostrar nombre_ejecutor, o nombre, o fallback */}
-                        {anexo.datosRellenados?.nombre_ejecutor || anexo.datosRellenados?.nombre || "Sin asignar"}
-                      </td>
-                      <td className="text-muted small">
-                        {new Date(anexo.fechaGeneracion).toLocaleDateString("es-CL", { day: "2-digit", month: "short", year: "numeric" })}
-                      </td>
-                      <td><span className="badge bg-success-subtle text-success rounded-pill px-3">Generado</span></td>
-                      
-                      {/* --- COLUMNA DE ACCIONES --- */}
-                      <td className="text-end pe-4">
-                        <div className="d-flex justify-content-end gap-2">
-                            {/* Botón Editar */}
-                            <button 
-                                className="btn btn-sm btn-light text-primary border" 
-                                onClick={() => navigate(`/admin/editar-anexo/${anexo._id}`)}
-                                title="Editar"
-                            >
-                                <i className="bi bi-pencil-fill"></i>
-                            </button>
+                  <td className="small">
+                    <div className="text-muted">
+                      {new Date(anexo.fechaGeneracion).toLocaleDateString("es-CL", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric"
+                      })}
+                    </div>
+                    <div className={obtenerClaseTiempo(anexo.fechaGeneracion)}>
+                      {tiempoTranscurrido(anexo.fechaGeneracion)}
+                    </div>
+                  </td>
 
-                            {/* Botón Eliminar (NUEVO) */}
-                            <button 
-                                className="btn btn-sm btn-light text-danger border" 
-                                onClick={() => handleDelete(anexo._id)}
-                                title="Eliminar"
-                            >
-                                <i className="bi bi-trash-fill"></i>
-                            </button>
-                        </div>
-                      </td>
+                  <td>
+                    <span className="badge bg-success-subtle text-success rounded-pill px-3">
+                      Generado
+                    </span>
+                  </td>
 
-                    </tr>
-                  ))}
-                  {anexos.length === 0 && (
-                    <tr><td colSpan={4} className="text-center p-4 text-muted">No hay anexos registrados.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                  <td className="text-end pe-4">
+                    <div className="d-flex justify-content-end gap-2">
+                      <button 
+                        className="btn btn-sm btn-light text-primary border" 
+                        onClick={() => navigate(`/admin/editar-anexo/${anexo._id}`)}
+                      >
+                        <i className="bi bi-pencil-fill"></i>
+                      </button>
+
+                      <button 
+                        className="btn btn-sm btn-light text-danger border" 
+                        onClick={() => handleDelete(anexo._id)}
+                      >
+                        <i className="bi bi-trash-fill"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+
+              {anexos.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-center p-4 text-muted">
+                    No hay anexos registrados.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
